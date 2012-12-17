@@ -1,5 +1,5 @@
 #!/bin/bash
-pkg=wxwidgets-help-0.0.1
+pkg=wxwidgets-help-0.0.2
 mkdir $pkg
 cp README.org $pkg
 cp *.el $pkg
