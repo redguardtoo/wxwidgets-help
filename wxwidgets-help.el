@@ -60,7 +60,7 @@
 (defun wxhelp-api-index ()
   "List wxWidgets API in its default HTML manual"
   (interactive)
-  (let ((rd (wx-root-dir)))
+  (let ((rd (wxhelp-root-dir)))
     (when rd
       (w3m-browse-url (concat rd "/docs/doxygen/out/html/group__group__funcmacro.html"))
       )
@@ -71,7 +71,7 @@
 (defun wxhelp-class-index ()
   "List wxWidgets class in its default HTML manual"
   (interactive)
-  (let ((rd (wx-root-dir)))
+  (let ((rd (wxhelp-root-dir)))
     (when rd
       (w3m-browse-url (concat rd "/docs/doxygen/out/html/group__group__class.html"))
       )
@@ -120,12 +120,12 @@
   (let ((c (gethash (downcase (substring k 0 1)) wxhelp-hash))
         hlp
         )
-    (when (and c (wx-root-dir))
-      (setq hlp (concat (wx-root-dir) "/docs/doxygen/out/html/" c))
+    (when (and c (wxhelp-root-dir))
+      (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" c))
       (if (wxhelp-query-var hlp (concat "<li>\\(" k "\\)"))
           (w3m-browse-url hlp)
         ; maybe it's just in gidcmn.h
-        (setq hlp (concat (wx-root-dir) "/docs/doxygen/out/html/" "gdicmn_8h.html"))
+        (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" "gdicmn_8h.html"))
         (w3m-browse-url hlp)
         )
       (kill-new k)
@@ -137,12 +137,12 @@
 ;;;###autoload
 (defun wxhelp-browse-class-or-api (k)
   (interactive "sKeyword: ")
-  (let ((rd (wx-root-dir))
+  (let ((rd (wxhelp-root-dir))
         ;; class?
         hlp
         )
     (when rd
-      (setq hlp (concat rd "/docs/doxygen/out/html/classwx" (wx-match-strs k) ".html"))
+      (setq hlp (concat rd "/docs/doxygen/out/html/classwx" (wxhelp-match-strs k) ".html"))
       (if (file-exists-p hlp)
         (w3m-browse-url hlp)
         ;; general topic?
