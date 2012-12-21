@@ -16,8 +16,10 @@ cd $WXWIN/docs/doxygen;./regen.sh html
 #+BEGIN_SRC elisp
 (global-set-key (kbd "C-c w") '(lambda () (interactive) (wxhelp-browse-class-or-api (thing-at-point 'symbol))))
 #+END_SRC
-** How to use it
-Move the focus on any word you want to look up and press the hot key "C-c w".
+* How to use it
+Move the focus on any word (keyword) you want to look up and press the hot key "C-c w".
+
+BTW, the keyword is copied to the clipboard (kill ring) automatically.
 * Contact me
 You can report bugs at [[https://github.com/redguardtoo/wxwidgets-help]]. My email is <chenbin DOT sh AT gmail>.
 * License

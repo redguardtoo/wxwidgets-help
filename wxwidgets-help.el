@@ -142,10 +142,22 @@
         (setq c (concat "globals_func_" (gethash ck wxhelp-hash)))
         (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" c))
         (if (wxhelp-query-var hlp (concat "<li>\\(" k "\\)"))
-          (w3m-browse-url hlp)
-          ; maybe it's just in gidcmn.h?
-          (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" "gdicmn_8h.html"))
-          (w3m-browse-url hlp)
+            (w3m-browse-url hlp)
+          ;; global vars?
+          (setq c (if (string= ck "a") "globals_vars.html" (concat "globals_vars_" (gethash ck wxhelp-hash))))
+          (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" c))
+          (if (wxhelp-query-var hlp (concat "<li>w?x?\\(" k "\\)"))
+              (w3m-browse-url hlp)
+            ;; global enum?
+            (setq c (if (string= ck "a") "globals_enum.html" (concat "globals_enum_" (gethash ck wxhelp-hash))))
+            (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" c))
+            (if (wxhelp-query-var hlp (concat "<li>w?x?\\(" k "\\)"))
+                (w3m-browse-url hlp)
+              ;; maybe it's just in gidcmn.h?
+              (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" "gdicmn_8h.html"))
+              (w3m-browse-url hlp)
+              )
+            )
           )
         )
       (kill-new k)
