@@ -1,4 +1,4 @@
-* wxwidgets-help (current version 0.0.1)
+* wxwidgets-help (current version 0.0.3)
 Look up wxWidgets API by using local html manual
 * Install
 wxwidgets-help is already uploaded to [[http://marmalade-repo.org/]]. So the best way to install it is using Emacs' package manager.
