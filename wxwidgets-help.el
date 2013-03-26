@@ -1,7 +1,7 @@
 ;;; wxwidgets-help.el --- Look up wxWidgets API by using local html manual
 
 ;; Copyright (C) 2012 Chen Bin
-;; Author: Chen Bin <chenbin.sh@gmail.com>
+;; Author: Chen Bin <chenbin DOT sh AT gmail>
 ;; URL: http://github.com/redguardtoo/wxwidgets-help
 ;; Keywords: wxWidgets C++ manual
 ;; Version: 0.0.3
