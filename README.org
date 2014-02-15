@@ -1,29 +1,33 @@
-* wxwidgets-help (current version 0.0.3)
-Look up wxWidgets API by using local html manual
+* wxwidgets-help (version 0.0.4)
+Look up wxWidgets API in its html manual which is produced by [[http://www.stack.nl/~dimitri/doxygen/][doxygen]].
 * Install
-wxwidgets-help is already uploaded to [[http://marmalade-repo.org/]]. So the best way to install it is using Emacs' package manager.
+wxwidgets-help is already uploaded to [[http://marmalade-repo.org/]]. So the best way to install it is through Emacs package manager.
 * Set up
-** Set the environment variable WXWIN or WXWIDGETS to the root directory of wxWidgets
-For example, add one line into your .bashrc
-#+BEGIN_SRC bash
-export WXWIN=$HOME/wxWidgets
+
+Step 1, set environment variable WXWIN or WXWIDGETS to directory of wxWidgets.
+
+For example, add one line into your ~/.bashrc,
+#+BEGIN_SRC sh
+export WXWIN=$HOME/wxWidgets-master
+# or
+export WXWIDGETS=$HOME/wxWidgets-master
+
 #+END_SRC
-** Create the html manual from wxWidgets source
-#+BEGIN_SRC bash
-cd $WXWIN/docs/doxygen;./regen.sh html
-#+END_SRC
-** Add one line into your .emacs
-#+BEGIN_SRC elisp
-(global-set-key (kbd "C-c w") '(lambda () (interactive) (wxhelp-browse-class-or-api (thing-at-point 'symbol))))
+
+Step 2, create html manual from wxWidgets source.
+
+#+BEGIN_SRC sh
+sudo apt-get install doxygen graphviz # if you use ubuntu/debian
+cd $WXWIN/docs/doxygen;WX_SKIP_DOXYGEN_VERSION_CHECK=1 ./regen.sh html
 #+END_SRC
 * How to use it
-Move the focus on any word (keyword) you want to look up and press the hot key "C-c w".
+Move the focus on any keyword you want to look up and then "M-x wxhelp-browse-class-or-api".
 
-BTW, the keyword is copied to the clipboard (kill ring) automatically.
+BTW, the keyword is copied to the clipboard automatically.
 * Contact me
 You can report bugs at [[https://github.com/redguardtoo/wxwidgets-help]]. My email is <chenbin DOT sh AT gmail>.
 * License
-Copyright (C) 2012 Chen Bin
+Copyright (C) 2014 Chen Bin
 
 Author: Chen Bin <chenbin DOT sh AT gmail> Keywords: wxWidgets C++
 

@@ -1,10 +1,10 @@
 ;;; wxwidgets-help.el --- Look up wxWidgets API by using local html manual
 
 ;; Copyright (C) 2012 Chen Bin
-;; Author: Chen Bin <chenbin DOT sh AT gmail>
+;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: http://github.com/redguardtoo/wxwidgets-help
 ;; Keywords: wxWidgets C++ manual
-;; Version: 0.0.3
+;; Version: 0.0.4
 
 ;; This file is not part of GNU Emacs.
 
@@ -15,7 +15,8 @@
 
 ;;; Code:
 (defvar wxhelp-hash (make-hash-table :test 'equal ))
-(defun wxhelp-init-hash ()
+
+(defun wxhelp--init-hash ()
   (clrhash wxhelp-hash)
   (puthash "a" "0x61.html" wxhelp-hash)
   (puthash "b" "0x62.html" wxhelp-hash)
@@ -44,38 +45,32 @@
   (puthash "y" "0x79.html" wxhelp-hash)
   (puthash "z" "0x7a.html" wxhelp-hash)
   (puthash "~" "functions_0x7e.html" wxhelp-hash)
-  (puthash "_" "functions.html" wxhelp-hash)
-  )
+  (puthash "_" "functions.html" wxhelp-hash))
 
-(defun wxhelp-root-dir ()
+(defun wxhelp--root-dir ()
   (let ((rd (getenv "WXWIN")))
     (if (not rd)
         (setq rd (getenv "WXWIDGETS"))
-        )
+      )
     rd
-    )
-  )
+    ))
 
-;;;###autoload
-(defun wxhelp-api-index ()
-  "List wxWidgets API in its default HTML manual"
-  (interactive)
-  (let ((rd (wxhelp-root-dir)))
-    (when rd
-      (w3m-browse-url (concat rd "/docs/doxygen/out/html/group__group__funcmacro.html"))
-      )
-    )
-  )
+(defun wxhelp--copy-yank-str (msg)
+  (kill-new msg)
+  (with-temp-buffer
+    (insert msg)
+    (shell-command-on-region (point-min) (point-max)
+                             (cond
+                              ((eq system-type 'cygwin) "putclip")
+                              ((eq system-type 'darwin) "pbcopy")
+                              (t "xsel -ib")
+                              ))))
 
-;;;###autoload
-(defun wxhelp-class-index ()
-  "List wxWidgets class in its default HTML manual"
-  (interactive)
-  (let ((rd (wxhelp-root-dir)))
-    (when rd
-      (w3m-browse-url (concat rd "/docs/doxygen/out/html/group__group__class.html"))
-      )
-    )
+(defun wxhelp--browse-url (url keyword)
+  (switch-to-buffer-other-window
+   (w3m-get-buffer-create "*w3m*"))
+  (w3m-browse-url url t)
+  (re-search-forward keyword)
   )
 
 (defun wxhelp-match-strs (s)
@@ -86,107 +81,135 @@
       (setq l (concat l "_" r))
       (setq i (+ i (length r) ))
       )
-    ;restore
     (setq case-fold-search cs)
     l
-    )
-  )
+    ))
 
 (defun wxhelp-readlines (fPath)
-    "Return a list of lines of a file at fPath."
-      (with-temp-buffer
-            (insert-file-contents fPath)
-                (split-string (buffer-string) "\n" t)))
+  "Return a list of lines of a file at fPath."
+  (with-temp-buffer
+    (insert-file-contents fPath)
+    (split-string (buffer-string) "\n" t)))
 
-(defun wxhelp-query-var (f re)
+(defun wxhelp-query-var (FILE REGEX)
+  "Does REGEX exist in FILE?"
   (let (v lines)
-    (setq lines (wxhelp-readlines f))
+    (setq lines (wxhelp-readlines FILE))
     (catch 'brk
       (dolist (l lines)
-        (when (string-match re l)
+        (when (string-match REGEX l)
           (setq v (match-string 1 l))
           (throw 'brk t)
           )
-        )
-      )
+        ))
     v
-    )
-  )
+    ))
 
-(defun wxhelp-prefix (k)
+(defun wxhelp--prefix (k)
   (let (c)
     (if (string= (substring k 0 2) "wx")
         (setq c (substring k 2 3))
-        (setq c (substring k 0 1))
-        )
+      (setq c (substring k 0 1))
+      )
     (downcase c)
-    )
-  )
-;;;###autoload
-(defun wxhelp-browse-api (k)
-  (interactive "sAPI or Macro: ")
-  (wxhelp-init-hash)
-  (let ((ck (wxhelp-prefix k))
+    ))
+
+(defun wxhelp--browse-api (k)
+  (wxhelp--init-hash)
+  (let ((ck (wxhelp--prefix k))
         c
-        hlp
-        )
+        hlp)
+
     (if (or (string= ck "_") (string= ck "~"))
-      (setq c (gethash ck wxhelp-hash))
+        (setq c (gethash ck wxhelp-hash))
       (setq c (concat "functions_" (gethash ck wxhelp-hash)))
       )
-    (when (and c (wxhelp-root-dir))
-      (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" c))
-      (if (wxhelp-query-var hlp (concat "<li>\\(" k "\\)"))
-          (w3m-browse-url hlp)
-        ;; global functions?
-        (setq c (concat "globals_func_" (gethash ck wxhelp-hash)))
-        (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" c))
-        (if (wxhelp-query-var hlp (concat "<li>\\(" k "\\)"))
-            (w3m-browse-url hlp)
-          ;; global vars?
-          (setq c (if (string= ck "a") "globals_vars.html" (concat "globals_vars_" (gethash ck wxhelp-hash))))
-          (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" c))
-          (if (wxhelp-query-var hlp (concat "<li>w?x?\\(" k "\\)"))
-              (w3m-browse-url hlp)
-            ;; global enum?
-            (setq c (if (string= ck "a") "globals_enum.html" (concat "globals_enum_" (gethash ck wxhelp-hash))))
-            (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" c))
-            (if (wxhelp-query-var hlp (concat "<li>w?x?\\(" k "\\)"))
-                (w3m-browse-url hlp)
-              ;; maybe it's just in gidcmn.h?
-              (setq hlp (concat (wxhelp-root-dir) "/docs/doxygen/out/html/" "gdicmn_8h.html"))
-              (w3m-browse-url hlp)
-              )
-            )
+
+    (setq hlp (concat (wxhelp--root-dir) "/docs/doxygen/out/html/" c))
+    (cond
+     ((wxhelp-query-var hlp (concat "<li>\\(" k "\\)"))
+      (wxhelp--browse-url hlp k))
+
+     ;; global functions?
+     ((wxhelp-query-var
+       (setq hlp (concat
+                  (wxhelp--root-dir)
+                  "/docs/doxygen/out/html/"
+                  "globals_func_"
+                  (gethash ck wxhelp-hash)))
+       (concat "<li>\\(" k "\\)"))
+      (wxhelp--browse-url hlp k))
+
+     ;; global vars?
+     ((wxhelp-query-var
+       (setq hlp (concat
+                  (wxhelp--root-dir)
+                  "/docs/doxygen/out/html/"
+                  (if (string= ck "a") "globals_vars.html"
+                    (concat "globals_vars_" (gethash ck wxhelp-hash)))))
+       (concat "<li>w?x?\\(" k "\\)"))
+      (wxhelp--browse-url hlp k))
+
+     ;; global enum?
+     ((wxhelp-query-var
+       (setq hlp (concat
+                  (wxhelp--root-dir)
+                  "/docs/doxygen/out/html/"
+                  (if (string= ck "a") "globals_enum.html"
+                    (concat "globals_enum_" (gethash ck wxhelp-hash)))))
+       (concat "<li>w?x?\\(" k "\\)"))
+      (wxhelp--browse-url hlp k))
+
+     ;; global def?
+     ((wxhelp-query-var
+       (setq hlp (concat
+                  (wxhelp--root-dir)
+                  "/docs/doxygen/out/html/"
+                  (if (string= ck "a") "globals_defs.html"
+                    (concat "globals_defs_" (gethash ck wxhelp-hash)))))
+       (concat "<li>w?x?\\(" k "\\)"))
+      (wxhelp--browse-url hlp k))
+
+     (t
+      (wxhelp--browse-url (concat (wxhelp--root-dir) "/docs/doxygen/out/html/" "gdicmn_8h.html") k)))
+
+    (wxhelp--copy-yank-str k)
+    (message "%s => clipboard" k)
+
+    ))
+
+(defun wxhelp--get-thing-under-cursor ()
+  (interactive)
+  (let (b e
+        (regex "[^a-zA-Z0-9_]"))
+    (save-excursion
+      (re-search-backward regex)
+      (forward-char)
+      (setq b (point))
+      (re-search-forward regex)
+      (setq e (point))
+      (if (> e b)
+          (buffer-substring-no-properties  b (- e 1))
+          ""
           )
-        )
-      (kill-new k)
-      (message "%s => clipboard" k)
-      )
-    )
-  )
+      )))
 
 ;;;###autoload
-(defun wxhelp-browse-class-or-api (k)
-  (interactive "sKeyword: ")
-  (let ((rd (wxhelp-root-dir))
-        ;; class?
-        hlp
-        )
+(defun wxhelp-browse-class-or-api ()
+  "Look up the keyword under cursor. The keyword will also be paste into clipboard"
+  (interactive)
+  (let ((rd (wxhelp--root-dir))
+        (k (read-string (format "Keyword (%s): " (wxhelp--get-thing-under-cursor))))
+        hlp)
+    (if (string= k "") (setq k (wxhelp--get-thing-under-cursor)))
     (when rd
-      (setq hlp (concat rd "/docs/doxygen/out/html/classwx" (wxhelp-match-strs k) ".html"))
-      (if (file-exists-p hlp)
-        (w3m-browse-url hlp)
-        ;; general topic?
-        (setq hlp (concat rd "/docs/doxygen/out/html/group__group__class__" (downcase k) ".html"))
-        (if (file-exists-p hlp)
-            (w3m-browse-url hlp)
-            ;; API or macro?
-            (wxhelp-browse-api k)
-          )
-        )
-      )
-    )
-  )
+      (cond
+       ((file-exists-p (setq hlp (concat rd "/docs/doxygen/out/html/classwx" (wxhelp-match-strs k) ".html")))
+        (wxhelp--browse-url hlp k))
+       ((file-exists-p (setq hlp (concat rd "/docs/doxygen/out/html/group__group__class__" (downcase k) ".html")))
+        (wxhelp--browse-url hlp k))
+       (t (wxhelp--browse-api k))
+       )
+      )))
 
 (provide 'wxhelp)
