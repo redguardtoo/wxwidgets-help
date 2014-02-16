@@ -14,6 +14,9 @@
 ;; See README.org which is distributed with this file
 
 ;;; Code:
+(autoload 'w3m-get-buffer-create "w3m")
+(autoload 'w3m-browse-url "w3m")
+
 (defvar wxhelp-hash (make-hash-table :test 'equal ))
 
 (defun wxhelp--init-hash ()

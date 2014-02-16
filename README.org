@@ -1,9 +1,10 @@
 * wxwidgets-help (version 0.0.4)
 Look up wxWidgets API in its html manual which is produced by [[http://www.stack.nl/~dimitri/doxygen/][doxygen]].
+
+w3m (the command line application and emacs plugin) is required.
 * Install
 wxwidgets-help is already uploaded to [[http://marmalade-repo.org/]]. So the best way to install it is through Emacs package manager.
 * Set up
-
 Step 1, set environment variable WXWIN or WXWIDGETS to directory of wxWidgets.
 
 For example, add one line into your ~/.bashrc,
